@@ -2,16 +2,16 @@
 
 ## Vision general
 
-Sistema Hive organiza a Claude Code como un equipo con 11 agentes especializados en 3 niveles. Kadid (fundador) actua como guardian y orquestador. El sistema opera de forma nativa — no hay que pedirlo.
+Sistema Hive organiza a Claude Code como un equipo con 13 agentes especializados en 3 niveles. Kadid (orquestador) actua como guardian y orquestador. El sistema opera de forma nativa — no hay que pedirlo.
 
 ## Componentes del sistema
 
-### 1. Agentes (11 archivos .md)
+### 1. Agentes (13 archivos .md)
 
 ```
 ~/.claude/commands/agents/
   estrategia/  (3)  — Direccion y vision (Kadid, CTO, CPO)
-  direccion/   (4)  — Gestion y coordinacion (PM, Eng Dir, Product Dir, Marketing & Legal)
+  direccion/   (6)  — Gestion y coordinacion (PM, Eng Dir, Product Dir, Marketing & Legal, Finance, Secre)
   ejecucion/   (4)  — Ejecucion tecnica y contenido (Backend, Frontend, DevOps, Content)
 ```
 
@@ -79,7 +79,8 @@ Estado del proyecto, decisiones canonicas, bloques activos. Se carga automaticam
 ~/.claude/commands/
   commit-devlog.md, conventions.md, design-review.md, fix-bug.md,
   generate-tests.md, optimize-repo.md, perf-check.md, security-scan.md,
-  skill-creator.md, skill-installer.md
+  skill-creator.md, skill-installer.md, init-project-workflow.md,
+  hive-claim.md, hive-inbox.md, hive-list.md, hive-send.md
 ```
 
 ## Flujo de datos
@@ -115,8 +116,9 @@ Usuario propone trabajo
 Content Lead → Marketing & Legal → Kadid
 Backend/Frontend/DevOps Lead → Engineering Dir → CTO → Kadid
 Product Director → CPO → Kadid
-PM → Kadid
-Kadid → Usuario (irreversible / dinero)
+Finance Director → Kadid
+PM / Secre → Kadid
+Kadid → Owner del proyecto (irreversible / dinero)
 ```
 
 ## Principios de diseno

@@ -1,6 +1,6 @@
 # Catalogo de Agentes — Sistema Hive
 
-11 agentes organizados en 3 niveles. Invocacion: `/agents/[nivel]/[nombre]`
+13 agentes organizados en 3 niveles. Invocacion: `/agents/[nivel]/[nombre]`
 
 ---
 
@@ -16,7 +16,7 @@ Vision, direccion y decisiones de alto nivel.
 
 ---
 
-## Direccion (4 agentes)
+## Direccion (6 agentes)
 
 Gestion y coordinacion. Traducen estrategia en planes ejecutables.
 
@@ -26,6 +26,8 @@ Gestion y coordinacion. Traducen estrategia en planes ejecutables.
 | Dir. Ingenieria | `/agents/direccion/engineering-director` | Calidad codigo, testing, datos, procesos dev | CTO |
 | Dir. Producto | `/agents/direccion/product-director` | Specs, UX, flujos, criterios de aceptacion | CPO |
 | Marketing & Legal | `/agents/direccion/marketing-legal` | Marketing, legal, compliance, contenido | Kadid / CPO |
+| Finance Director | `/agents/direccion/finance-director` | Modelo economico, costes, pricing, presupuesto | Kadid |
+| Secre | `/agents/direccion/secre` | Briefing organizativo, estado del proyecto, agenda | Kadid |
 
 ---
 
@@ -42,42 +44,24 @@ Ejecucion tecnica y de contenido.
 
 ---
 
-## Agentes fusionados (referencia)
-
-| Agente actual | Absorbe de los antiguos |
-|---------------|------------------------|
-| Kadid | CEO (nuevo rol ampliado) |
-| CTO | CTO + Security Director |
-| CPO | CPO + CLO |
-| Engineering Dir. | Eng Dir + QA Lead + Data Lead |
-| Product Dir. | Product Dir + UX Lead |
-| Marketing & Legal | CMO + Marketing Dir + Compliance Dir + Privacy Officer + Compliance Analyst |
-| Backend Lead | Backend Lead + API Designer + DB Architect + Integration Specialist + Perf Engineer + Security Engineer |
-| Frontend Lead | Frontend Lead + UI Developer + SEO Specialist |
-| DevOps Lead | DevOps Lead + CI/CD Engineer + Monitoring Engineer |
-| Content Lead | Copywriter + Social Media + Email Marketing + Community Manager |
-| PM | PM (sin cambios) |
-
----
-
 ## Cuando usar cada nivel
 
 | Necesidad | Nivel | Ejemplo |
 |-----------|-------|---------|
 | Definir direccion, resolver conflictos, verificar FUNDAMENTALS | Estrategia | "Priorizamos seguridad o velocidad?" |
 | Planificar un bloque, coordinar equipos, definir specs | Direccion | "Pre-flight del Bloque 15" |
-| Ejecutar tarea concreta | Ejecucion | "Crear endpoint REST para /api/slots" |
+| Ejecutar tarea concreta | Ejecucion | "Crear endpoint REST para /api/users" |
 
 ## Protocolo de escalado
 
 ```
-Ejecucion → Direccion → Estrategia → Usuario
+Ejecucion → Direccion → Estrategia → Owner del proyecto
 ```
 
 1. Intentar resolver en el nivel actual
 2. Si excede dominio o autoridad → escalar al superior
 3. Si afecta a 2+ dominios → registrar en cross_decisions.md + escalar
-4. Kadid resuelve o escala al usuario si es irreversible / implica dinero
+4. Kadid resuelve o escala al owner si es irreversible / implica dinero
 
 ## Documentos fundamentales
 

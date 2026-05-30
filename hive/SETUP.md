@@ -1,4 +1,4 @@
-# Setup — Claude-Hive
+# Setup — Claude-Hive Starter
 
 Instrucciones para instalar el sistema Hive en una maquina nueva o proyecto nuevo.
 Claude Code puede leer este archivo y ejecutar los pasos automaticamente.
@@ -7,13 +7,13 @@ Claude Code puede leer este archivo y ejecutar los pasos automaticamente.
 
 ## Instalacion en maquina nueva
 
-El repo Claude-Hive ES `~/.claude/`. Para instalarlo en otra maquina:
+El repo se clona como tu `~/.claude/`. Para instalarlo en otra maquina:
 
 ```bash
-git clone https://github.com/didac-odena/Claude-Hive.git ~/.claude
+git clone https://github.com/<tu-usuario>/claude-hive-starter.git ~/.claude
 ```
 
-Tras clonar, ya tienes los 11 agentes + 10 skills + CLAUDE.md disponibles.
+Tras clonar, ya tienes los 13 agentes + las skills + CLAUDE.md disponibles.
 
 Crear `settings.json` adaptado a la maquina (no esta en el repo si esta en .gitignore).
 
@@ -63,7 +63,7 @@ Editar `.claude/rules/workflow.md`:
 
 ```bash
 ls ~/.claude/commands/agents/estrategia/   # 3 (Kadid, CTO, CPO)
-ls ~/.claude/commands/agents/direccion/    # 4 (PM, Eng Dir, Product Dir, M&L)
+ls ~/.claude/commands/agents/direccion/    # 6 (PM, Eng Dir, Product Dir, M&L, Finance, Secre)
 ls ~/.claude/commands/agents/ejecucion/    # 4 (Backend, Frontend, DevOps, Content)
 
 ls project_docs/context/

@@ -1,47 +1,19 @@
-# Changelog — Claude-Hive
+# Changelog — Claude-Hive Starter
 
-## [2.0.0] — 2026-04-12
+## [starter] — version agnostica
 
-### Changed
-- Renombrado: Sistema Imperium → Sistema Hive
-- Reestructuracion completa: 33 agentes → 11 agentes en 3 niveles (Estrategia, Direccion, Ejecucion)
-- Nuevo agente Kadid (Fundador): guardian de FUNDAMENTALS, orquestador, decisor de direccion
-- Orquestacion nativa: Hive siempre activo, no hay que pedirlo
-- Workflow con flujo real: pre-flight → planificacion → ejecucion → revision → informe
-- Comites entre agentes para resolver desacuerdos
-- FUNDAMENTALS.md: documentos inviolables por proyecto
-- Guardrail anti-edicion-paralela: agentes en paralelo solo para analisis
-- Subagentes usan modelo de sesion (opus) en vez de haiku
-- Hook renombrado: imperium-remind.py → hive-remind.py
+Version portable y sin referencias a ningun proyecto concreto, lista para instanciar.
 
-### Agentes fusionados
-- CTO absorbe Security Director
-- CPO absorbe CLO
-- Engineering Dir absorbe QA Lead + Data Lead
-- Product Dir absorbe UX Lead
-- Marketing & Legal absorbe CMO + Marketing Dir + Compliance Dir + 5 especialistas
-- Backend Lead absorbe API Designer + DB Architect + Integration + Perf + Security Engineer
-- Frontend Lead absorbe UI Developer + SEO Specialist
-- DevOps Lead absorbe CI/CD Engineer + Monitoring Engineer
-- Content Lead absorbe Copywriter + Social Media + Email Marketing + Community Manager
+### Incluye
+- 13 agentes en 3 niveles (Estrategia, Direccion, Ejecucion), orquestados por Kadid.
+- Workflow de bloques: pre-flight (locks + dependencias) → planificacion → ejecucion → post-validation → cierre con DEVLOG.
+- Hooks portables: `rtk-rewrite.sh` (compresion de tokens), `routing-check.py` (ownership por bloque), `hive-remind.py` (aviso de cambios sin commit).
+- Skills reutilizables (commit-devlog, conventions, design-review, fix-bug, generate-tests, optimize-repo, perf-check, security-scan, skill-creator, skill-installer, init-project-workflow) + comandos del Hive Bridge.
+- Templates por proyecto: FUNDAMENTALS, MEMORY, WORKFLOW, cross-decisions, context-domain, rules-domain.
+- `settings.json.example` sin secretos.
 
-### Removed
-- 22 agentes eliminados (fusionados en los 11 nuevos)
-- Carpetas nivel-0, nivel-1, nivel-2, nivel-3 eliminadas
-- CLAUDE_CODE_SUBAGENT_MODEL haiku eliminado
-
-## [1.1.0] — 2026-04-10
-
-### Changed
-- Reescritura completa de los 33 agentes para portabilidad
-- Eliminadas todas las referencias hardcodeadas a proyectos concretos
-- Nuevo patron: agente = CV generico, context files = conocimiento del proyecto
-
-## [1.0.0] — 2026-04-10
-
-### Added
-- 33 agentes organizados en 4 niveles (C-Suite, Direccion, Leads, Especialistas)
-- 10 skills reutilizables
-- Capa de coordinacion: cross_decisions.md, pre-flight checks, post-validation
-- 5 templates
-- Documentacion: ARCHITECTURE.md, AGENTS.md, TOKEN-EFFICIENCY.md
+### Principios
+- Orquestacion nativa: el sistema esta siempre activo, no hay que pedirlo.
+- FUNDAMENTALS.md por proyecto: documentos inviolables que Kadid protege.
+- Edicion secuencial: agentes en paralelo solo para analisis, nunca para editar archivos.
+- Aislamiento de contexto: cada agente lee solo lo que necesita.

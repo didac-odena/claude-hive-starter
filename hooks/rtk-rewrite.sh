@@ -2,7 +2,7 @@
 # RTK hook: rewrites bash commands through rtk for token compression.
 # Falls back gracefully if rtk is not installed.
 
-export PATH="$PATH:/c/Users/FullStack/.cargo/bin"
+export PATH="$PATH:$HOME/.cargo/bin"
 PYTHON="${PYTHON:-$(which python3 2>/dev/null || which python 2>/dev/null)}"
 
 # Read payload from stdin before anything else consumes it
