@@ -48,7 +48,15 @@ Esta es la version **agnostica** del sistema: sin referencias a ningun proyecto 
 
 ## Instalacion
 
-### Opcion A — clonar como tu `~/.claude/`
+### Opcion 0 — deja que Claude lo instale (recomendado)
+Clona el repo, abre Claude Code dentro y dile: **"Lee INSTALL.md e instala el sistema en mi ~/.claude"**. Claude fusiona el contenido en tu `~/.claude` sin pisar tu config (hace backup de `CLAUDE.md`/`settings.json`, resuelve rutas y engancha los hooks). Ver [INSTALL.md](INSTALL.md). Reinicia Claude Code al terminar.
+
+```bash
+git clone https://github.com/<tu-usuario>/claude-hive-starter.git
+cd claude-hive-starter && claude   # luego, dentro: "Lee INSTALL.md e instalalo"
+```
+
+### Opcion A — clonar como tu `~/.claude/` (manual)
 Si quieres adoptar todo el sistema (recomendado para empezar):
 
 ```bash
