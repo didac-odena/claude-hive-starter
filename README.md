@@ -4,6 +4,8 @@ Sistema de agentes multi-nivel para **Claude Code**. Organiza tu proyecto como u
 
 Esta es la version **agnostica** del sistema: sin referencias a ningun proyecto concreto, lista para instanciar en el tuyo.
 
+> 👋 ¿Primera vez? Empieza por **[WELCOME.md](WELCOME.md)** — qué es, qué beneficios tiene y cómo usarlo bien.
+
 ## Que incluye
 
 ```
@@ -25,6 +27,7 @@ Esta es la version **agnostica** del sistema: sin referencias a ningun proyecto 
 │   ├── rtk-rewrite.sh              # Compresion de tokens (RTK)
 │   ├── routing-check.py            # Detecta si una edicion diverge del owner del bloque activo
 │   └── hive-remind.py             # Avisa de cambios sin commit
+├── hive-bridge/                    # Mensajeria entre sesiones Claude paralelas (bridge.py)
 └── hive/                          # Docs de la metodologia + templates
     ├── SETUP.md, CHANGELOG.md, kadid-profile.md, training-protocol.md
     ├── docs/                       # ARCHITECTURE.md, AGENTS.md, TOKEN-EFFICIENCY.md

@@ -37,10 +37,11 @@ Objetivo: fusionar el contenido portable de este repo dentro del `~/.claude/` de
 
 ### Paso 2 — Copiar contenido portable (merge)
 Copia desde el repo a `CLAUDE_HOME`, fusionando carpetas (no borres lo que el usuario ya tenga dentro):
-- `commands/` → `CLAUDE_HOME/commands/`
-- `hive/`     → `CLAUDE_HOME/hive/`
-- `hooks/`    → `CLAUDE_HOME/hooks/`
-- `status.py` → `CLAUDE_HOME/status.py`
+- `commands/`    → `CLAUDE_HOME/commands/`
+- `hive/`        → `CLAUDE_HOME/hive/`
+- `hive-bridge/` → `CLAUDE_HOME/hive-bridge/` (mensajeria entre sesiones; las carpetas `sessions/` runtime se crean solas)
+- `hooks/`       → `CLAUDE_HOME/hooks/`
+- `status.py`    → `CLAUDE_HOME/status.py`
 
 ### Paso 3 — CLAUDE.md
 - Si el usuario **NO** tenia `CLAUDE.md` → copia el del repo a `CLAUDE_HOME/CLAUDE.md`.
@@ -54,6 +55,7 @@ Copia desde el repo a `CLAUDE_HOME`, fusionando carpetas (no borres lo que el us
 Los hooks **degradan con gracia** si falta su dependencia (no rompen Claude). Para activarlos del todo:
 - **RTK** (compresion de tokens, `rtk-rewrite.sh`): requiere el binario `rtk` en el PATH. Si no esta, el hook deja pasar el comando sin comprimir.
 - **routing-check.py**: requiere `pyyaml` (`pip install pyyaml`). Si falta, el hook se silencia.
+- **Hive Bridge** (`/hive-claim`): requiere `psutil` (`pip install psutil`). El resto de comandos del bridge funcionan solo con `HIVE_ALIAS` exportado.
 Comprueba cuales tiene el usuario e informale de lo que falta (es opcional).
 
 ### Paso 6 — Verificar y reportar
@@ -66,7 +68,7 @@ Comprueba cuales tiene el usuario e informale de lo que falta (es opcional).
 
 ## Nota — comandos del Hive Bridge
 
-Los comandos `/hive-claim`, `/hive-inbox`, `/hive-list`, `/hive-send` (mensajeria entre sesiones paralelas) dependen de un `hive-bridge/bridge.py` que **no se incluye** en este starter. Si no vas a coordinar varias sesiones a la vez, puedes ignorarlos. Todo lo demas (agentes, workflow, hooks, skills) funciona sin ellos.
+Los comandos `/hive-claim`, `/hive-inbox`, `/hive-list`, `/hive-send` permiten mensajeria entre sesiones Claude Code paralelas. Para usarlos, exporta `HIVE_ALIAS=<nombre>` antes de arrancar `claude` en cada terminal. Es opt-in: sin alias no hacen nada, asi que no molestan si no los usas. Detalle en `hive-bridge/README.md`.
 
 ## Desinstalar / revertir
 Restaura los `.bak` creados en el Paso 1 sobre `CLAUDE.md` y `settings.json`, y borra del `~/.claude` las carpetas/archivos que añadio el starter si no los quieres.

@@ -1,0 +1,3 @@
+# Runtime — buzones y mapa de sesiones (no se commitean)
+sessions/
+sessions-by-pid.json

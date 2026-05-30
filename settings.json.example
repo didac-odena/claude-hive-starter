@@ -17,12 +17,30 @@
     "defaultMode": "auto"
   },
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python <CLAUDE_HOME>/hive-bridge/bridge.py check --mode session-start"
+          }
+        ]
+      }
+    ],
     "UserPromptSubmit": [
       {
         "hooks": [
           {
             "type": "command",
             "command": "python <CLAUDE_HOME>/hooks/routing-check.py"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python <CLAUDE_HOME>/hive-bridge/bridge.py check --mode user-prompt"
           }
         ]
       }
@@ -43,6 +61,16 @@
           {
             "type": "command",
             "command": "python <CLAUDE_HOME>/hooks/routing-check.py"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python <CLAUDE_HOME>/hive-bridge/bridge.py check --mode post-tool"
           }
         ]
       }
