@@ -1,72 +1,119 @@
-# Bienvenido a Claude-Hive 🐝
+# Claude-Hive
 
-Esto convierte a Claude Code en un **equipo** en lugar de un asistente suelto. En vez de un solo modelo genérico improvisando, tienes 13 roles especializados, un orquestador que protege las decisiones importantes, y un flujo de trabajo que evita dejar cosas a medias.
+Una capa de orquestación multi-agente sobre Claude Code, construida entera con primitivas que ya tienes: **markdown versionado, ficheros planos en git y los hooks nativos del CLI**. Cero servidor, cero daemon, cero framework. Si te quitan el sistema, lo que queda son ficheros legibles y un repo con historial.
 
-Si vienes de usar Claude Code "a pelo", esto te va a cambiar la forma de trabajar en proyectos serios.
-
----
-
-## Por qué usarlo (beneficios)
-
-- **13 agentes especializados, no un todoterreno.** Backend, frontend, devops, producto, legal/marketing, finanzas, QA… Cada agente lee **solo el contexto de su dominio**, así que sus respuestas son más enfocadas y no se diluyen. Invocas al que toca y habla como ese rol.
-- **Un workflow que cierra bien.** El trabajo serio se organiza en **bloques**: antes de empezar hay un *pre-flight* (comprueba dependencias y que no choques con otra sesión), y al terminar un *cierre* con registro en el DEVLOG. Menos "empecé y lo dejé a medias".
-- **Kadid, el guardián.** Hay un agente orquestador (Kadid) que protege tus documentos **FUNDAMENTALS** — si una decisión los contradice, la bloquea y te avisa. También decide qué agente lidera cada cosa.
-- **Anti-deuda técnica por diseño.** Reglas duras que el sistema respeta: nunca tocar un test para que pase, nunca hardcodear para aprobar validaciones, no dejar findings "a medias". La calidad va por delante de la velocidad.
-- **Memoria entre sesiones.** `MEMORY.md` (índice) + `project_docs/context/*` hacen que el proyecto "recuerde" decisiones y estado de una sesión a la siguiente.
-- **Ahorro de tokens (RTK).** Un hook comprime ciertos comandos pesados (git diff/log, listados…) antes de que entren al contexto. Si no instalas `rtk`, no pasa nada: deja pasar el comando tal cual.
-- **Trabajo en paralelo (Hive Bridge).** Puedes tener varias terminales de Claude abiertas a la vez y que **se manden mensajes** entre ellas sin copiar/pegar.
-- **Skills listas.** Comandos como `/commit-devlog`, `/fix-bug`, `/generate-tests`, `/security-scan`, `/perf-check` — atajos a tareas comunes hechas con criterio.
+La tesis: un modelo genérico con todo el contexto encima rinde peor que varios roles acotados, cada uno leyendo solo su dominio, coordinados por un estado explícito y auditable. Esto implementa eso sin pedirte que adoptes infraestructura.
 
 ---
 
-## Los conceptos en 1 minuto
+## Cómo está construido
 
-| Concepto | Qué es |
+**Agentes = system prompts versionados, no procesos.** Cada uno de los 13 agentes es un `.md` bajo `commands/agents/<nivel>/`. Invocarlo (`/backend-lead`, `/kadid`, …) carga ese prompt y reorienta al modelo a ese rol: qué ficheros de contexto lee, qué decide vs qué escala, sus guardrails. Al ser markdown, son diffeables, revisables en PR y editables sin tocar código. El "CV" del agente vive en el repo del sistema; el conocimiento del proyecto vive en los context files del proyecto. Esa separación es lo que los hace portables.
+
+**Aislamiento de contexto por convención.** Un agente lee `project_docs/context/<su-dominio>.md` y poco más, no el árbol entero. Menos ruido en la ventana, menos coste, respuestas más enfocadas. Es disciplina de contexto, no magia.
+
+**Coordinación = ficheros planos en git.** No hay base de datos de estado. El estado de orquestación son cuatro ficheros versionados:
+
+| Fichero | Rol |
 |---|---|
-| **Agente** | Un rol con criterio propio. Se invoca con `/<nombre>` (ej. `/backend-lead`, `/kadid`). |
-| **Niveles** | Estrategia (visión) → Dirección (coordina) → Ejecución (pica). Escalas hacia arriba si te falta autoridad. |
-| **Bloque** | Una unidad de trabajo con principio y fin. Lo abres diciendo *"Bloque N — nombre"*. |
-| **FUNDAMENTALS.md** | Tus documentos inviolables. Kadid no deja que nada los contradiga. |
-| **cross_decisions.md** | Donde se registran las decisiones que afectan a varios dominios. |
-| **Hooks** | Automatismos: RTK (tokens), routing-check (avisa si editas fuera de dominio), hive-remind (te recuerda commits). |
+| `session_locks.yaml` | Sesiones activas: `owned_files`, `owned_domains`, `owner_agent`. Lo que habilita concurrencia. |
+| `block_graph.yaml` | DAG de bloques (`depends_on`, `touches`). |
+| `cross_decisions.md` | Decisiones multi-dominio con racional. Estados PENDING → IMPLEMENTED. |
+| `FUNDAMENTALS.md` | Invariantes inviolables. El guardián bloquea lo que las contradiga. |
+
+Todo es texto, todo entra en el diff, todo es auditable a posteriori. No hay estado oculto que se desincronice del repo.
+
+**Jerarquía y escalado.** Tres niveles — Estrategia (Kadid, CTO, CPO), Dirección (PM, Eng Dir, Product Dir, Marketing&Legal, Finance, Secre), Ejecución (Backend, Frontend, DevOps, Content). Escalas hacia arriba cuando excedes tu autoridad o la decisión cruza dominios; Kadid resuelve o sube al owner si es irreversible o cuesta dinero.
 
 ---
 
-## Cómo usarlo bien
+## Lo interesante: concurrencia
 
-1. **Define tus FUNDAMENTALS al empezar.** En un proyecto nuevo, ejecuta `/init-project-workflow` y rellena `project_docs/FUNDAMENTALS.md` con lo que es sagrado (el PRD, el whitepaper, invariantes de negocio…). Sin eso, Kadid no puede hacer de guardián.
+El sistema asume que abrirás **varias sesiones de Claude Code en paralelo** sobre el mismo repo. Dos mecanismos lo soportan:
 
-2. **Habla en bloques para trabajo serio.** En vez de "hazme el login", di *"Bloque 1 — autenticación con JWT y refresh tokens"*. El sistema hace pre-flight, planifica y cierra con DEVLOG. Para tareas sueltas de 2 minutos no hace falta.
+**1. Locks por fichero (pre-flight).** Antes de abrir un bloque, se calcula qué ficheros va a tocar (`block_graph.touches`) y se contrasta con los `owned_files` de las sesiones vivas en `session_locks.yaml`. Si hay intersección → colisión, no arrancas. Dos sesiones pueden trabajar a la vez mientras no pisen los mismos ficheros. Al cerrar, se libera el lock (se borra la entry, no se comenta — el fichero solo refleja lo vivo).
 
-3. **Invoca al agente del dominio.** ¿UI? `/frontend-lead`. ¿Endpoint o schema? `/backend-lead`. ¿Decisión de producto o pricing? `/cpo` o `/finance-director`. ¿No sabes por dónde empezar el día? `/secre` te da un briefing.
+**2. Routing por ownership (hook).** `routing-check.py` corre en cada `Edit|Write|NotebookEdit` y en cada prompt. Infiere el dominio del path tocado (longest-prefix match contra `PATH_TO_DOMAIN`) y lo compara con el `owner_agent` del bloque activo. Si editas algo fuera del dominio de tu bloque, inyecta un `systemMessage` sugiriendo el pivot al agente correcto o declarar `[Directo]` con razón. Routing semántico decidido una vez (al abrir bloque), validado barato en cada edición.
 
-4. **Deja que Kadid orqueste lo grande.** Para decisiones que cruzan dominios o tocan FUNDAMENTALS, invoca `/kadid` y que coordine. Su trabajo es bloquear lo que rompe coherencia y elegir quién hace qué.
-
-5. **Usa las skills en vez de pedirlo a mano.** `/commit-devlog` para commitear con entrada de DEVLOG; `/fix-bug` para depurar con método; `/security-scan` antes de exponer algo. Salen mejor que improvisando.
-
-6. **Multi-terminal con el Bridge (opcional).** Si trabajas en dos cosas a la vez, arranca cada terminal con `export HIVE_ALIAS=backend-1` (o el nombre que quieras) antes de `claude`, y usa `/hive-send`, `/hive-inbox`, `/hive-list` para coordinarlas.
+**3. Hive Bridge (mensajería inter-sesión).** Mailbox en filesystem, sin red. Cada sesión se identifica por `HIVE_ALIAS` (env) o por el PID del proceso `node` ancestro — cada sesión de Claude Code es un `node` distinto, así que dos sesiones en el mismo cwd se distinguen sin colisión. Enviar = escribir un JSON atómico (`os.replace`) en el `inbox/` del destino. Un hook `check` inyecta aviso cuando hay pendientes, con rate-limit de 30s en `PostToolUse` para sesiones autónomas. Opt-in: sin alias, no-op total.
 
 ---
 
-## Primeros 5 minutos (tras instalar)
+## Los hooks (puntos de intercepción)
 
-```text
-1. Reinicia Claude Code (para que cargue CLAUDE.md, hooks y status line).
-2. En tu proyecto:  /init-project-workflow
-   → crea project_docs/ con FUNDAMENTALS, MEMORY, ROADMAP, cross_decisions…
-3. Edita project_docs/FUNDAMENTALS.md con tus documentos inviolables.
-4. Di:  "secre"   → te da un briefing del estado y propone por dónde empezar.
-5. Abre tu primer bloque:  "Bloque 1 — <lo que sea>".
+Todo el "automatismo" se apoya en los hooks nativos de Claude Code, no en un wrapper:
+
+- **`rtk-rewrite.sh`** — `PreToolUse` sobre Bash. Reescribe comandos de salida pesada (`git diff/log/status`, `pytest`, `ls`, `find`…) para pasarlos por `rtk` y comprimir el output antes de que entre a la ventana. Si `rtk` no está en el PATH, deja pasar el comando intacto.
+- **`routing-check.py`** — el routing por ownership de arriba. Si no es un repo Hive (no hay `session_locks.yaml`), silencio.
+- **`hive-remind.py`** — `Stop` hook, recuerda cambios sin commitear al terminar.
+
+Todos degradan con gracia: si falta una dependencia (`rtk`, `pyyaml`, `psutil`), el hook se silencia, no rompe la sesión.
+
+---
+
+## El loop de trabajo
+
+El trabajo serio va en **bloques**. No es burocracia: son los controles de calidad que evitan el "casi terminado".
+
+```
+"Bloque N — <nombre>"
+   │
+   ├─ pre-flight ── lock check (colisión de ficheros) ──┐
+   │               dependency check (block_graph)        ├─ BLOCKED → no arrancas
+   │               cross_decisions activas               ┘
+   │
+   ├─ plan persistido en active_plans/<session_id>.md   (crash-recovery: si la
+   │                                                      sesión muere, la siguiente
+   │                                                      lo retoma desde disco)
+   ├─ ejecución (ediciones secuenciales; agentes en
+   │             paralelo solo para análisis)
+   │
+   └─ cierre ── test-delta (baseline vs final → caza regresiones)
+               sin findings PARTIAL (FIXED | DEFERRED+bloque | ACCEPTED)
+               DEVLOG + commit acotado a owned_files
+               release lock
 ```
 
+Reglas duras que el sistema respeta de serie: **nunca** tocar un test para que pase (se arregla el código que valida), **nunca** hardcodear para aprobar una validación, un CRITICAL con fix interino exige bloque de resolución en la misma sesión. Si una regla te estorba en algo trivial, sáltatela — están pensadas para lo que cuesta volver, no para fricción gratuita.
+
 ---
 
-## Filosofía
+## Cómo sacarle partido
 
-> **Calidad > velocidad, siempre.** Hacer rápido y mal cuesta más que hacer despacio y bien, porque obliga a volver.
+- **Define FUNDAMENTALS primero.** `/init-project-workflow` instancia `project_docs/` en tu repo. Rellena `FUNDAMENTALS.md` con lo que es sagrado (contrato de API, modelo de datos, invariantes de negocio). Sin eso, el guardián no tiene contra qué validar.
+- **Piensa en bloques, no en prompts sueltos**, para cualquier cosa con dependencias o que toque varios ficheros. Para un fix de dos líneas, invocación directa y listo.
+- **Invoca el dominio:** `/backend-lead` (API/schema), `/frontend-lead` (UI/design system), `/cpo`·`/finance-director` (producto/pricing), `/secre` (briefing de estado). Kadid para lo cross-domain y lo que toca FUNDAMENTALS.
+- **Adapta `routing-check.py`.** El `PATH_TO_DOMAIN` trae defaults de un stack web (`app/web/`, `app/api/`). Reescríbelo a la estructura real de tu repo — es donde el routing por ownership empieza a pagar.
+- **Multi-terminal:** `export HIVE_ALIAS=backend-1` antes de `claude` en cada sesión, y `/hive-send`·`/hive-inbox`·`/hive-list` para coordinarlas.
 
-El sistema está diseñado para que el trabajo quede **cerrado de verdad**, no "casi". Los pasos del workflow no son burocracia: son controles de calidad. Si alguno te estorba en una tarea trivial, sáltatelo — pero en lo serio, te ahorran volver.
+---
 
-Para el detalle de la metodología: `hive/README.md`, `hive/docs/ARCHITECTURE.md` y `hive/docs/AGENTS.md`.
+## Trade-offs (lo que NO es)
 
-Disfrútalo. 🐝
+- **Es disciplina por convención reforzada con hints, no enforcement duro.** Los agentes son system prompts; el modelo puede desviarse. Los hooks inyectan sugerencias, no abortan (salvo lo que pase por el sistema de permisos). El valor está en hacer el estado explícito y barato de verificar, no en garantías formales.
+- **El Bridge es local y sin cifrar.** Misma máquina, filesystem compartido, entorno de confianza. Sin retransmisión: si el destino no existe, el send falla con error claro.
+- **El estado vive en git, con lo bueno y lo malo.** Auditable y diffeable, pero si trabajas en paralelo tienes que ser disciplinado con los `owned_files` para que los locks signifiquen algo.
+
+---
+
+## Quickstart
+
+```bash
+# tras instalar (ver INSTALL.md) y reiniciar Claude Code, en tu repo:
+/init-project-workflow          # instancia project_docs/ (FUNDAMENTALS, MEMORY, block_graph, …)
+$EDITOR project_docs/FUNDAMENTALS.md   # define tus invariantes
+# luego, en Claude:
+"secre"                         # briefing de estado + propuesta de agenda
+"Bloque 1 — <lo que sea>"       # abre el primer bloque (pre-flight automático)
+```
+
+## Mapa del repo
+
+- `commands/agents/` — los 13 system prompts, por nivel.
+- `commands/` — skills (`commit-devlog`, `fix-bug`, `generate-tests`, `security-scan`, `perf-check`, `init-project-workflow`, …).
+- `hooks/` — `rtk-rewrite.sh`, `routing-check.py`, `hive-remind.py`.
+- `hive-bridge/` — `bridge.py` + protocolo del mailbox.
+- `hive/` — metodología (`docs/ARCHITECTURE.md`, `docs/AGENTS.md`) y `templates/` que `init-project-workflow` instancia.
+- `CLAUDE.md` — reglas globales que se cargan en cada sesión.
+
+El detalle de la metodología y el reparto de autoridad está en `hive/docs/`.
