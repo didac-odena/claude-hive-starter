@@ -1,0 +1,11 @@
+# Machine-specific — crea tu settings.json desde settings.json.example
+settings.json
+settings.local.json
+.credentials.json
+weekly_tracker.json
+history.jsonl
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
